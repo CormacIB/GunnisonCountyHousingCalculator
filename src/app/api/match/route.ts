@@ -74,13 +74,18 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const { profile } = validation;
-  const { listings, amiTable } = await getSheetData();
-  const amiPercent = getAMIPercent(
-    profile.householdSize,
-    profile.annualIncome,
-    amiTable
-  );
-  const matched = matchListings(profile, listings, amiPercent);
 
-  return NextResponse.json(matched);
+  try {
+    const { listings, amiTable } = await getSheetData();
+    const amiPercent = getAMIPercent(
+      profile.householdSize,
+      profile.annualIncome,
+      amiTable
+    );
+    const matched = matchListings(profile, listings, amiPercent);
+    return NextResponse.json(matched);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Internal error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
