@@ -25,4 +25,27 @@ describe("getAMIPercent", () => {
     // $75,000 is above 60% ($67,500) but below 80% ($90,000)
     expect(getAMIPercent(4, 75_000, TEST_AMI_TABLE)).toBe(80);
   });
+
+  it("returns OVER_INCOME_AMI (121) when income exceeds the 120% limit", () => {
+    // $200,000 is above the 4-person 120% limit of $135,000
+    expect(getAMIPercent(4, 200_000, TEST_AMI_TABLE)).toBe(OVER_INCOME_AMI);
+    expect(OVER_INCOME_AMI).toBe(121);
+  });
+
+  it("returns the tier when income is exactly at a boundary", () => {
+    // $90,000 is exactly the 4-person 80% AMI limit — should qualify at 80%, not 100%
+    expect(getAMIPercent(4, 90_000, TEST_AMI_TABLE)).toBe(80);
+  });
+
+  it("returns the correct tier for household size 1", () => {
+    // $40,000 is above 1-person 30% ($23,650) and 50% ($39,350), below 60% ($47,250)
+    expect(getAMIPercent(1, 40_000, TEST_AMI_TABLE)).toBe(60);
+  });
+
+  it("returns the correct tier for household size 8", () => {
+    // $100,000 is below 8-person 80% limit ($118,800) → returns 80
+    expect(getAMIPercent(8, 100_000, TEST_AMI_TABLE)).toBe(80);
+    // $150,000 is above 8-person 100% limit ($148,500) but below 120% ($178,200) → returns 120
+    expect(getAMIPercent(8, 150_000, TEST_AMI_TABLE)).toBe(120);
+  });
 });
