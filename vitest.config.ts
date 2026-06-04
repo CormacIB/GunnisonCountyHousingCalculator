@@ -6,6 +6,8 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "node",
+    globals: true,
+    setupFiles: ["./src/test-setup.ts"],
   },
   resolve: {
     alias: {
