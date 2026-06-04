@@ -26,59 +26,142 @@ function parseCsvRow(line: string): string[] {
   return values;
 }
 
+// Finds the first row whose values look like column headers (non-numeric, reasonable length).
+// Skips title/banner rows that appear above the real header in Google Sheets exports.
+function findHeaderRowIndex(lines: string[]): number {
+  for (let i = 0; i < lines.length; i++) {
+    const cells = parseCsvRow(lines[i]);
+    // A header row has multiple non-empty, non-numeric cells
+    const nonNumeric = cells.filter((c) => c !== "" && isNaN(Number(c)));
+    if (nonNumeric.length >= 3) return i;
+  }
+  return 0;
+}
+
 function parseCsv(text: string): { headers: string[]; rows: string[][] } {
   const lines = text.trim().split("\n").filter(Boolean);
-  const headers = parseCsvRow(lines[0]).map((h) => h.toLowerCase().trim());
-  const rows = lines.slice(1).map(parseCsvRow);
+  const headerIdx = findHeaderRowIndex(lines);
+  const headers = parseCsvRow(lines[headerIdx]).map((h) => h.toLowerCase().trim());
+  const rows = lines.slice(headerIdx + 1).map(parseCsvRow);
   return { headers, rows };
 }
 
+function col(row: string[], headers: string[], ...names: string[]): string {
+  for (const name of names) {
+    const idx = headers.indexOf(name.toLowerCase());
+    if (idx !== -1 && row[idx] !== undefined) return row[idx].trim();
+  }
+  return "";
+}
+
 function toBool(val: string): boolean {
-  return val.toLowerCase() === "yes";
+  const v = val.toLowerCase();
+  return v === "yes" || v === "true";
+}
+
+// Strips $, commas, and % from numeric strings produced by Google Sheets.
+function toNumber(val: string): number {
+  return Number(val.replace(/[$,%]/g, "").replace(/,/g, "").trim());
 }
 
 function toOptionalNumber(val: string): number | undefined {
-  return val !== "" ? Number(val) : undefined;
+  if (val === "") return undefined;
+  const n = toNumber(val);
+  return isNaN(n) ? undefined : n;
 }
 
 export function parseListingsCsv(csv: string): Listing[] {
   const { headers, rows } = parseCsv(csv);
-  const col = (row: string[], name: string) => row[headers.indexOf(name)] ?? "";
+
+  const get = (row: string[], ...names: string[]) => col(row, headers, ...names);
 
   return rows
-    .map((row): Listing => ({
-      listing_id: col(row, "listing_id"),
-      listing_name: col(row, "listing_name"),
-      type: col(row, "type") as "rental" | "ownership",
-      ami_max_percent: Number(col(row, "ami_max_percent")),
-      ami_min_percent: toOptionalNumber(col(row, "ami_min_percent")),
-      household_size_min: toOptionalNumber(col(row, "household_size_min")),
-      household_size_max: toOptionalNumber(col(row, "household_size_max")),
-      county_residency_required: toBool(col(row, "county_residency_required")),
-      county_employment_required: toBool(col(row, "county_employment_required")),
-      first_time_buyer_required: toBool(col(row, "first_time_buyer_required")),
-      bedrooms: Number(col(row, "bedrooms")),
-      monthly_rent: toOptionalNumber(col(row, "monthly_rent")),
-      purchase_price: toOptionalNumber(col(row, "purchase_price")),
-      status: col(row, "status") as "available" | "pending" | "unavailable",
-      contact_info: col(row, "contact_info"),
-      notes: col(row, "notes") || undefined,
-    }))
-    .filter((l) => l.status === "available");
+    .map((row): Listing => {
+      const address = get(row, "address", "listing_name");
+      const city = get(row, "city");
+      const listing_name = city ? `${address}, ${city}` : address;
+
+      // Determine listing type: explicit "type" column wins; otherwise infer from "property type"
+      const typeRaw = get(row, "type", "property type").toLowerCase();
+      const type: "rental" | "ownership" =
+        typeRaw === "rental" ? "rental" : "ownership";
+
+      // AMI max: strip trailing % sign
+      const amiRaw = get(row, "ami_max_percent", "ami % target");
+      const ami_max_percent = toNumber(amiRaw);
+
+      // Status: explicit "status" column wins; fall back to "affordable?" yes/no
+      const statusRaw = get(row, "status", "affordable?").toLowerCase();
+      const status: "available" | "pending" | "unavailable" =
+        statusRaw === "available"
+          ? "available"
+          : statusRaw === "pending"
+          ? "pending"
+          : statusRaw === "yes"
+          ? "available"
+          : "unavailable";
+
+      return {
+        listing_id: get(row, "listing_id", "listing id"),
+        listing_name,
+        type,
+        ami_max_percent,
+        ami_min_percent: toOptionalNumber(get(row, "ami_min_percent")),
+        household_size_min: toOptionalNumber(get(row, "household_size_min")),
+        household_size_max: toOptionalNumber(get(row, "household_size_max")),
+        county_residency_required: toBool(get(row, "county_residency_required")),
+        county_employment_required: toBool(get(row, "county_employment_required")),
+        first_time_buyer_required: toBool(get(row, "first_time_buyer_required")),
+        bedrooms: toNumber(get(row, "bedrooms")),
+        monthly_rent: toOptionalNumber(get(row, "monthly_rent")),
+        purchase_price: toOptionalNumber(
+          get(row, "purchase_price", "list price")
+        ),
+        status,
+        contact_info: get(row, "contact_info"),
+        notes: get(row, "notes") || undefined,
+      };
+    })
+    .filter((l) => l.status === "available" && !isNaN(l.ami_max_percent));
 }
 
 export function parseAmiTableCsv(csv: string): AMITable {
   const { headers, rows } = parseCsv(csv);
-  const tierHeaders = headers.filter((h) => h !== "household_size");
+
+  // Detect orientation: rows=tiers, cols=sizes (e.g. "1-person", "2-person")
+  // vs. rows=sizes, cols=tiers (e.g. "30", "50", "60"...)
+  const hasSizeColumns = headers.some((h) => /\d+-person/.test(h));
 
   const table: AMITable = {};
-  for (const row of rows) {
-    const col = (name: string) => row[headers.indexOf(name)] ?? "";
-    const size = Number(col("household_size"));
-    table[size] = {};
-    for (const tier of tierHeaders) {
-      table[size][Number(tier)] = Number(col(tier));
+
+  if (hasSizeColumns) {
+    // Sheet format: AMI %, [label], 1-Person, 2-Person, ... 8-Person
+    const sizeHeaders = headers.filter((h) => /\d+-person/.test(h));
+
+    for (const row of rows) {
+      const tierRaw = col(row, headers, "ami %", "ami%").replace("%", "").trim();
+      const tier = Number(tierRaw);
+      if (isNaN(tier)) continue;
+
+      for (const sizeHeader of sizeHeaders) {
+        const size = Number(sizeHeader.replace(/-person/, "").trim());
+        const limit = toNumber(col(row, headers, sizeHeader));
+        if (!table[size]) table[size] = {};
+        table[size][tier] = limit;
+      }
+    }
+  } else {
+    // Sheet format: household_size, 30, 50, 60, 80, 100, 120
+    const tierHeaders = headers.filter((h) => /^\d+$/.test(h));
+    for (const row of rows) {
+      const size = Number(col(row, headers, "household_size"));
+      if (isNaN(size)) continue;
+      table[size] = {};
+      for (const tier of tierHeaders) {
+        table[size][Number(tier)] = toNumber(col(row, headers, tier));
+      }
     }
   }
+
   return table;
 }
