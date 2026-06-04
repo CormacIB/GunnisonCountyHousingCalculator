@@ -76,11 +76,6 @@ export async function POST(request: Request): Promise<Response> {
   const { profile } = validation;
 
   try {
-    // temporary: remove after confirming env vars are present
-    console.log("ENV CHECK", {
-      hasListings: !!process.env.LISTINGS_CSV_URL,
-      hasAmi: !!process.env.AMI_TABLE_CSV_URL,
-    });
     const { listings, amiTable } = await getSheetData();
     const amiPercent = getAMIPercent(
       profile.householdSize,
