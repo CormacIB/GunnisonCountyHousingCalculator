@@ -15,6 +15,7 @@ export default function Home() {
   const [firstTimeBuyer, setFirstTimeBuyer] = useState("yes");
 
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [results, setResults] = useState<Listing[] | null>(null);
 
@@ -38,6 +39,7 @@ export default function Home() {
       return;
     }
     setValidationError(null);
+    setApiError(null);
     setStatus("loading");
 
     const profile = {
@@ -55,10 +57,16 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? `Server error (${res.status})`);
+      }
       const data: Listing[] = await res.json();
       setResults(data);
-    } finally {
       setStatus("done");
+    } catch (err) {
+      setApiError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setStatus("idle");
     }
   }
 
@@ -70,6 +78,11 @@ export default function Home() {
         {validationError && (
           <p role="alert" style={{ color: "red" }}>
             {validationError}
+          </p>
+        )}
+        {apiError && (
+          <p role="alert" style={{ color: "red" }}>
+            {apiError}
           </p>
         )}
 
