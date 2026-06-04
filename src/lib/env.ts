@@ -1,10 +1,10 @@
 export type EnvConfig = {
-  googleSheetsApiKey: string;
-  googleSheetId: string;
+  listingsCsvUrl: string;
+  amiTableCsvUrl: string;
 };
 
 export function getEnvConfig(): EnvConfig {
-  const missing = (["GOOGLE_SHEETS_API_KEY", "GOOGLE_SHEET_ID"] as const).filter(
+  const missing = (["LISTINGS_CSV_URL", "AMI_TABLE_CSV_URL"] as const).filter(
     (key) => !process.env[key]
   );
 
@@ -13,7 +13,7 @@ export function getEnvConfig(): EnvConfig {
   }
 
   return {
-    googleSheetsApiKey: process.env.GOOGLE_SHEETS_API_KEY!,
-    googleSheetId: process.env.GOOGLE_SHEET_ID!,
+    listingsCsvUrl: process.env.LISTINGS_CSV_URL!,
+    amiTableCsvUrl: process.env.AMI_TABLE_CSV_URL!,
   };
 }

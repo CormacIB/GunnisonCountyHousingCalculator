@@ -40,9 +40,9 @@ When no matching listings exist, the tool provides a soft landing with actionabl
 
 ### Technology Stack
 - **Framework:** Next.js (React) hosted on Vercel free tier
-- **Data source:** Google Sheets via Google Sheets API v4
+- **Data source:** Google Sheets published as CSV (no Google Cloud project or API key required)
 - **Embedding:** The deployed Vercel URL is dropped into any host website as a plain `<iframe>`
-- **API key security:** All Sheets API calls go through a Next.js API route; the key is stored as a Vercel environment variable and never sent to the client
+- **Data access:** Each sheet tab is published via "Publish to web → CSV" and the URL stored as a Vercel environment variable (`LISTINGS_CSV_URL`, `AMI_TABLE_CSV_URL`). Fetched server-side with plain `fetch()` — no auth headers, no Google SDK.
 
 ### Google Sheet Schema
 

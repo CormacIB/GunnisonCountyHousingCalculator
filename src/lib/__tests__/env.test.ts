@@ -13,36 +13,36 @@ describe("getEnvConfig", () => {
   });
 
   it("returns typed config when all required env vars are present", () => {
-    process.env.GOOGLE_SHEETS_API_KEY = "test-api-key";
-    process.env.GOOGLE_SHEET_ID = "test-sheet-id";
+    process.env.LISTINGS_CSV_URL = "https://example.com/listings.csv";
+    process.env.AMI_TABLE_CSV_URL = "https://example.com/ami.csv";
 
     const config = getEnvConfig();
 
     expect(config).toEqual({
-      googleSheetsApiKey: "test-api-key",
-      googleSheetId: "test-sheet-id",
+      listingsCsvUrl: "https://example.com/listings.csv",
+      amiTableCsvUrl: "https://example.com/ami.csv",
     });
   });
 
   it("throws a descriptive error naming the missing variable", () => {
-    delete process.env.GOOGLE_SHEETS_API_KEY;
-    process.env.GOOGLE_SHEET_ID = "test-sheet-id";
+    delete process.env.LISTINGS_CSV_URL;
+    process.env.AMI_TABLE_CSV_URL = "https://example.com/ami.csv";
 
-    expect(() => getEnvConfig()).toThrow("GOOGLE_SHEETS_API_KEY");
+    expect(() => getEnvConfig()).toThrow("LISTINGS_CSV_URL");
   });
 
-  it("throws naming GOOGLE_SHEET_ID when that var is missing", () => {
-    process.env.GOOGLE_SHEETS_API_KEY = "test-api-key";
-    delete process.env.GOOGLE_SHEET_ID;
+  it("throws naming AMI_TABLE_CSV_URL when that var is missing", () => {
+    process.env.LISTINGS_CSV_URL = "https://example.com/listings.csv";
+    delete process.env.AMI_TABLE_CSV_URL;
 
-    expect(() => getEnvConfig()).toThrow("GOOGLE_SHEET_ID");
+    expect(() => getEnvConfig()).toThrow("AMI_TABLE_CSV_URL");
   });
 
   it("throws naming all missing variables when both are absent", () => {
-    delete process.env.GOOGLE_SHEETS_API_KEY;
-    delete process.env.GOOGLE_SHEET_ID;
+    delete process.env.LISTINGS_CSV_URL;
+    delete process.env.AMI_TABLE_CSV_URL;
 
-    expect(() => getEnvConfig()).toThrow("GOOGLE_SHEETS_API_KEY");
-    expect(() => getEnvConfig()).toThrow("GOOGLE_SHEET_ID");
+    expect(() => getEnvConfig()).toThrow("LISTINGS_CSV_URL");
+    expect(() => getEnvConfig()).toThrow("AMI_TABLE_CSV_URL");
   });
 });

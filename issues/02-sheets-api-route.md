@@ -1,4 +1,4 @@
-# Issue 2: Google Sheet template + Sheets API route
+# Issue 2: Google Sheet template + CSV fetch route
 
 **Label:** `ready-for-agent`
 **Type:** AFK
@@ -14,18 +14,18 @@ The sheet has two tabs:
 
 Populate both tabs with realistic sample data (at least 4–5 listings of mixed type and status).
 
-The API route reads both tabs via the Sheets API, parses them into typed `Listing[]` and `AMITable` structures, and returns them as JSON. Rows where `status !== 'available'` are filtered out before returning.
+The API route fetches both tabs via their published CSV URLs (from `getEnvConfig()`), parses the CSV into typed `Listing[]` and `AMITable` structures, and returns them as JSON. No Google Cloud project or API key is needed — plain `fetch()` only. Rows where `status !== 'available'` are filtered out before returning.
 
 ## Acceptance criteria
 
 - [ ] Google Sheet created with tab 1 (Listings) and tab 2 (AMI Table) matching the agreed schema
 - [ ] Tab 2 populated with current Gunnison County AMI figures from HUD
 - [ ] At least 4 sample listings added to tab 1 — mix of rental and ownership, some available and some unavailable
-- [ ] Next.js API route reads both tabs using server-side credentials (API key never sent to client)
+- [ ] Next.js API route fetches both tabs using their published CSV URLs via plain `fetch()` (no API key, no Google SDK)
 - [ ] Route returns parsed `Listing[]` (available only) and `AMITable` as JSON
 - [ ] Unavailable listings are excluded from the response
 - [ ] Route is reachable in the local dev server and on the Vercel deployment
 
 ## Blocked by
 
-Issue 1 (project scaffold + Vercel deployment + Google Cloud credentials)
+Issue 1 (project scaffold + Vercel deployment + CSV URLs stored as env vars)
