@@ -349,27 +349,30 @@ Returns listings that match the submitted user profile.
 **Response (200):**
 
 ```json
-[
-  {
-    "listing_id": "abc123",
-    "listing_name": "Riverwalk Apartments Unit 4B",
-    "type": "rental",
-    "ami_max_percent": 80,
-    "ami_min_percent": 50,
-    "county_residency_required": false,
-    "county_employment_required": true,
-    "first_time_buyer_required": false,
-    "bedrooms": 2,
-    "monthly_rent": 1100,
-    "purchase_price": null,
-    "status": "available",
-    "contact_info": "housing@example.com",
-    "notes": "Pets allowed with deposit"
-  }
-]
+{
+  "listings": [
+    {
+      "listing_id": "abc123",
+      "listing_name": "Riverwalk Apartments Unit 4B",
+      "type": "rental",
+      "ami_max_percent": 80,
+      "ami_min_percent": 50,
+      "county_residency_required": false,
+      "county_employment_required": true,
+      "first_time_buyer_required": false,
+      "bedrooms": 2,
+      "monthly_rent": 1100,
+      "purchase_price": null,
+      "status": "available",
+      "contact_info": "housing@example.com",
+      "notes": "Pets allowed with deposit"
+    }
+  ],
+  "amiPercent": 80
+}
 ```
 
-An empty array `[]` means no listings matched — this is a valid 200 response, not an error.
+`listings` is the filtered set — an empty array means no listings matched, which is a valid 200, not an error. `amiPercent` is the server-computed AMI tier (one of `30 | 50 | 60 | 80 | 100 | 120 | 121`) used by the eligibility panel in the UI. `121` means the household exceeds the 120% AMI limit (`OVER_INCOME_AMI`).
 
 **Error responses:**
 
@@ -397,22 +400,59 @@ Useful for verifying that the CSV parser is reading the spreadsheet correctly. N
 
 ## Frontend
 
-**File:** [`src/app/page.tsx`](src/app/page.tsx)
+**Files:** [`src/app/page.tsx`](src/app/page.tsx), [`src/components/ListingCard.tsx`](src/components/ListingCard.tsx), [`src/app/globals.css`](src/app/globals.css)
 
-The calculator is a single client-side form. Fields:
+The UI is a full editorial design with a warm cream background (`#f1ede4`), teal accent (`#2e6b73`), and Newsreader serif headlines. It is structured in three sections:
 
-| Field | Always shown | Notes |
-|-------|-------------|-------|
-| Rent vs. Buy | Yes | Radio buttons; controls listing type and conditional fields |
-| Annual Household Income | Yes | Dollar amount; validated > 0 |
-| Household Size | Yes | Integer 1–8 |
-| Live in Gunnison County? | Yes | Yes / No dropdown |
-| Work in Gunnison County? | Yes | Yes / No dropdown |
-| First-time buyer? | Ownership only | Shown/hidden based on listing type selection |
+**Masthead** — branded header bar with a mountain peak mark, org name, and location label.
 
-**Form states:** `idle` → `loading` → `done`. Results are rendered as [`ListingCard`](src/components/ListingCard.tsx) components. If the API returns an empty array, a soft "no match" message is shown with contact info for the Housing Authority — the user is never left without a path forward.
+**Hero** — full-width serif headline and lede copy above the main layout.
 
-The form has no styling of its own. It relies on the host site's CSS, since the tool is designed to be embedded as an iframe.
+**Two-column layout** — form panel on the left (sticky on scroll), eligibility summary + results on the right.
+
+### Form panel
+
+| Field | Control | Always shown |
+|-------|---------|-------------|
+| Looking to | Segmented (Rent / Buy) | Yes |
+| Annual household income | Currency input ($ prefix, /yr suffix) | Yes |
+| Household size | Stepper (– / + buttons, 1–8) | Yes |
+| Live in Gunnison County? | Segmented (Yes / No) | Yes |
+| Work in Gunnison County? | Segmented (Yes / No) | Yes |
+| First-time buyer? | Segmented (Yes / No) | Ownership only |
+
+All Yes/No fields use a segmented pill control (`role="radiogroup"`) rather than dropdowns. Household size uses a +/− stepper rather than a text input. The income field formats the value with locale commas while typing and strips non-digit characters.
+
+**Form states:** `idle` → `loading` → `done`.
+
+### Eligibility panel
+
+Shown after submit. Displays:
+
+- The household's **exact AMI percentage** (income ÷ illustrative 100% AMI for that household size — used for display only; see note below)
+- A **"May qualify up to X% AMI"** pill using the server-computed tier from the API response
+- An **AMI meter** — a horizontal track with tick marks at 30 / 60 / 80 / 100 / 120%, a filled bar to the household's position, and a floating flag label
+- A **local-household note** — green if the user lives or works in the county, amber if not, explaining which listings may be hidden
+
+> **Display vs. eligibility AMI:** The meter uses illustrative hardcoded AMI\_100 figures (defined in `page.tsx`) to compute the visual percentage position. Actual eligibility uses live HUD data fetched from the spreadsheet via the API. The footer disclaimer makes this explicit.
+
+### Results
+
+- If listings match: a numbered list of [`ListingCard`](src/components/ListingCard.tsx) components, each showing the listing name, price, bedroom count, AMI cap badge, tags (residency/employment/first-time-buyer requirements), and contact info
+- If no listings match: a soft empty state with contact info for the Housing Authority — the user is never left without a path forward
+
+### Design system
+
+All styles live in [`src/app/globals.css`](src/app/globals.css) using CSS custom properties:
+
+| Token | Default | Purpose |
+|-------|---------|---------|
+| `--accent` | `#2e6b73` | Buttons, meter fill, badges, eyebrows |
+| `--accent-deep` | `#265c64` | Hover states, price text, meter flag |
+| `--paper` | `#f1ede4` | Page background |
+| `--serif` | Newsreader, Georgia | Headlines and large AMI % display |
+
+The layout is responsive: below 740px the columns stack vertically, the form is full-width, and the listing figure panel narrows.
 
 ---
 
@@ -475,7 +515,7 @@ The app sets `frame-ancestors *` in its Content-Security-Policy header, allowing
 ></iframe>
 ```
 
-No CORS configuration is needed. The parent site's CSS does not bleed into the iframe, so the calculator renders with its own (minimal) styles.
+No CORS configuration is needed. The parent site's CSS does not bleed into the iframe — the calculator ships its own complete design system in `globals.css`.
 
 ---
 
@@ -513,3 +553,7 @@ Test files:
 **Iframe embedding over JS widget:** An iframe provides hard CSS isolation (the host site cannot accidentally break the calculator's layout) and keeps the deployment self-contained. The `frame-ancestors *` CSP header is the only configuration needed on the host side.
 
 **Server-side sheet fetching:** Google Sheets CSV URLs never reach the client browser. This avoids exposing the sheet IDs in client-side code and prevents users from directly querying the raw data outside the calculator's validation layer.
+
+**Illustrative AMI % vs. server AMI tier:** The eligibility meter shows the household's income as a percentage of illustrative 100% AMI figures hardcoded in `page.tsx`. The "May qualify up to X% AMI" pill uses the server-computed tier from the API, which is based on the real HUD data in the spreadsheet. These two numbers differ: one is a display position on the meter, the other drives actual eligibility. The footer disclaimer makes this distinction explicit to users.
+
+**Self-contained CSS:** The design system is defined entirely in `globals.css` via CSS custom properties. This means the iframe embed is visually self-contained — the host site's stylesheet cannot inadvertently break the layout — while still allowing future theming by overriding the `--accent`, `--paper`, and `--serif` tokens.
