@@ -23,7 +23,7 @@ describe("ListingCard", () => {
 
     expect(screen.getByText("42 Elk Ave, Gunnison")).toBeInTheDocument();
     expect(screen.getByText(/rental/i)).toBeInTheDocument();
-    expect(screen.getByText(/2 bedroom/i)).toBeInTheDocument();
+    expect(screen.getByText(/2 bedrooms/i)).toBeInTheDocument();
     expect(screen.getByText(/\$1,100\/month/i)).toBeInTheDocument();
     expect(screen.getByText(/80%.*ami/i)).toBeInTheDocument();
     expect(screen.getByText(/housing@gunnisoncounty\.org/)).toBeInTheDocument();
@@ -38,7 +38,7 @@ describe("ListingCard", () => {
     };
     render(<ListingCard listing={ownershipListing} />);
 
-    expect(screen.getByText(/for sale/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/for sale/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/\$320,000/)).toBeInTheDocument();
     expect(screen.queryByText(/\/month/i)).not.toBeInTheDocument();
   });

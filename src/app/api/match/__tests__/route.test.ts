@@ -70,8 +70,9 @@ describe("POST /api/match", () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toHaveLength(1);
-    expect(body[0].listing_id).toBe("001");
+    expect(body.listings).toHaveLength(1);
+    expect(body.listings[0].listing_id).toBe("001");
+    expect(typeof body.amiPercent).toBe("number");
   });
 
   it("returns 400 when listingType is missing", async () => {
