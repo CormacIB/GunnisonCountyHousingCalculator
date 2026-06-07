@@ -133,15 +133,16 @@ export function parseListingsCsv(csv: string): Listing[] {
 export function parseAmiTableCsv(csv: string): AMITable {
   const { headers, rows } = parseCsv(csv);
 
-  // Detect orientation: rows=tiers, cols=sizes (e.g. "1-person", "2-person")
+  // Detect orientation: rows=tiers, cols=sizes (e.g. "1-person" or "1 person")
   // vs. rows=sizes, cols=tiers (e.g. "30", "50", "60"...)
-  const hasSizeColumns = headers.some((h) => /\d+-person/.test(h));
+  const SIZE_COL = /\d+[\s-]person/;
+  const hasSizeColumns = headers.some((h) => SIZE_COL.test(h));
 
   const table: AMITable = {};
 
   if (hasSizeColumns) {
-    // Sheet format: AMI %, [label], 1-Person, 2-Person, ... 8-Person
-    const sizeHeaders = headers.filter((h) => /\d+-person/.test(h));
+    // Sheet format: AMI %, [rent cols], 1 Person, 2 Person, ... 8 Person
+    const sizeHeaders = headers.filter((h) => SIZE_COL.test(h));
 
     for (const row of rows) {
       const tierRaw = col(row, headers, "ami %", "ami%").replace("%", "").trim();
@@ -149,7 +150,7 @@ export function parseAmiTableCsv(csv: string): AMITable {
       if (isNaN(tier)) continue;
 
       for (const sizeHeader of sizeHeaders) {
-        const size = Number(sizeHeader.replace(/-person/, "").trim());
+        const size = Number(sizeHeader.replace(/[\s-]person/, "").trim());
         const limit = toNumber(col(row, headers, sizeHeader));
         if (!table[size]) table[size] = {};
         table[size][tier] = limit;
