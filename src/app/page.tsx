@@ -236,29 +236,28 @@ export default function Home() {
 
   return (
     <div className="app">
-      {/* ── Masthead ── */}
-      <header className="masthead">
-        <div className="mast-left">
-          <div className="mast-mark" aria-hidden="true">
-            <span className="mast-peak" />
-          </div>
-          <div className="mast-id">
-            <div className="mast-org">Gunnison Valley Regional Housing Authority</div>
-            <div className="mast-sub">Affordable homes finder</div>
-          </div>
+      {/* ── Brand ── */}
+      <div className="brand">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/valleyhousinglogo.png" alt="Valley Housing Fund" className="brand-logo" />
+        <div className="brand-id">
+          <div className="brand-wordmark">Valley Housing Fund</div>
+          <div className="brand-kicker">Affordable Homes Finder</div>
         </div>
-        <div className="mast-right">Gunnison County, Colorado</div>
-      </header>
+      </div>
 
       {/* ── Hero ── */}
       <div className="hero">
+        <p className="hero-eyebrow">Creating affordable housing solutions</p>
         <h1 className="hero-title">
-          Find a home in the valley you can actually afford.
+          Find a home in the valley you can{" "}
+          <span className="accentword">actually afford.</span>
         </h1>
+        <div className="hero-rule" aria-hidden="true" />
         <p className="hero-lede">
-          Answer a few quick questions. We'll show where your household falls on
-          the Area Median Income scale and the deed-restricted homes you may
-          qualify for — to rent or to buy.
+          Answer a few quick questions. We&rsquo;ll show where your household
+          falls on the Area Median Income scale and the deed-restricted homes
+          you may qualify for — to rent or to buy.
         </p>
       </div>
 
@@ -382,12 +381,12 @@ export default function Home() {
                 </div>
               </div>
               <AmiMeter displayPct={displayPct} />
-              <div className={"summary-note" + (local ? " is-good" : " is-warn")}>
-                <span className="note-dot" aria-hidden="true" />
-                {local
-                  ? "You count as a local household — that opens up homes reserved for people who live or work in the county."
-                  : "Heads up: some homes are reserved for people who live or work in Gunnison County. Those are hidden from your results."}
-              </div>
+              {local && (
+                <div className="summary-note is-good">
+                  <span className="note-dot" aria-hidden="true" />
+                  You count as a local household — that opens up homes reserved for people who live or work in the county.
+                </div>
+              )}
             </div>
           ) : status === "loading" ? (
             <div className="panel summary summary-empty">
@@ -451,7 +450,7 @@ export default function Home() {
           Figures are illustrative and for demonstration only. Confirm current
           income limits and availability with the Housing Authority.
         </span>
-        <span className="colophon-mark">GVRHA</span>
+        <span className="colophon-mark">VHF</span>
       </footer>
     </div>
   );
