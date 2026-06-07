@@ -90,7 +90,9 @@ export function parseListingsCsv(csv: string): Listing[] {
       const amiRaw = get(row, "ami_max_percent", "ami % target");
       const ami_max_percent = toNumber(amiRaw);
 
-      // Status: explicit "status" column wins; fall back to "affordable?" yes/no
+      // Status: explicit "status" column wins; fall back to "affordable?" yes/no.
+      // If neither column exists (empty string), treat the row as available so
+      // spreadsheets without a status column still return results.
       const statusRaw = get(row, "status", "affordable?").toLowerCase();
       const status: "available" | "pending" | "unavailable" =
         statusRaw === "available"
@@ -99,7 +101,9 @@ export function parseListingsCsv(csv: string): Listing[] {
           ? "pending"
           : statusRaw === "yes"
           ? "available"
-          : "unavailable";
+          : statusRaw === "no" || statusRaw === "false" || statusRaw === "unavailable"
+          ? "unavailable"
+          : "available"; // no status column present — default to available
 
       return {
         listing_id: get(row, "listing_id", "listing id"),
