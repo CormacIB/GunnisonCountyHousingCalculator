@@ -11,6 +11,7 @@ const BASE_LISTING: Listing = {
   county_residency_required: false,
   county_employment_required: false,
   first_time_buyer_required: false,
+  no_county_property_required: false,
   bedrooms: 2,
   monthly_rent: 1200,
   status: "available",
@@ -25,6 +26,8 @@ const BASE_PROFILE: UserProfile = {
   countyResident: true,
   countyEmployee: false,
   firstTimeBuyer: false,
+  countyIncomePercent: 0,
+  ownsPropertyInCounty: false,
 };
 
 // amiPercent for BASE_PROFILE at $60,000 income (below 80% AMI limit)
@@ -95,5 +98,34 @@ describe("matchListings", () => {
       firstTimeBuyer: false,
     };
     expect(matchListings(nonFtbBuyer, [ftbListing], BASE_AMI_PERCENT)).toHaveLength(0);
+  });
+
+  it("excludes a listing requiring 60% county income when user earns less", () => {
+    const incomeListing: Listing = { ...BASE_LISTING, county_income_min_percent: 60 };
+    const lowCountyIncome: UserProfile = { ...BASE_PROFILE, countyIncomePercent: 0 };
+    expect(matchListings(lowCountyIncome, [incomeListing], BASE_AMI_PERCENT)).toHaveLength(0);
+  });
+
+  it("includes a listing requiring 60% county income when user earns 80%", () => {
+    const incomeListing: Listing = { ...BASE_LISTING, county_income_min_percent: 60 };
+    const highCountyIncome: UserProfile = { ...BASE_PROFILE, countyIncomePercent: 80 };
+    expect(matchListings(highCountyIncome, [incomeListing], BASE_AMI_PERCENT)).toHaveLength(1);
+  });
+
+  it("excludes a listing requiring 80% county income when user earns 60%", () => {
+    const incomeListing: Listing = { ...BASE_LISTING, county_income_min_percent: 80 };
+    const midCountyIncome: UserProfile = { ...BASE_PROFILE, countyIncomePercent: 60 };
+    expect(matchListings(midCountyIncome, [incomeListing], BASE_AMI_PERCENT)).toHaveLength(0);
+  });
+
+  it("excludes a listing requiring no existing county property when user owns property", () => {
+    const noPropertyListing: Listing = { ...BASE_LISTING, no_county_property_required: true };
+    const ownerProfile: UserProfile = { ...BASE_PROFILE, ownsPropertyInCounty: true };
+    expect(matchListings(ownerProfile, [noPropertyListing], BASE_AMI_PERCENT)).toHaveLength(0);
+  });
+
+  it("includes a listing requiring no existing county property when user does not own property", () => {
+    const noPropertyListing: Listing = { ...BASE_LISTING, no_county_property_required: true };
+    expect(matchListings(BASE_PROFILE, [noPropertyListing], BASE_AMI_PERCENT)).toHaveLength(1);
   });
 });

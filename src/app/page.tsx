@@ -39,11 +39,11 @@ function Field({
   );
 }
 
-function Segmented<T extends string | boolean>({
+function Segmented<T extends string | boolean | number>({
   options, value, onChange, name,
 }: {
   options: { value: T; label: string }[];
-  value: T;
+  value: T | undefined;
   onChange: (v: T) => void;
   name: string;
 }) {
@@ -55,7 +55,7 @@ function Segmented<T extends string | boolean>({
           key={String(o.value)}
           role="radio"
           aria-checked={o.value === value}
-          className={"seg-btn" + (o.value === value ? " is-active" : "")}
+          className={"seg-btn" + (value !== undefined && o.value === value ? " is-active" : "")}
           onClick={() => onChange(o.value)}
         >
           {o.label}
@@ -172,6 +172,8 @@ export default function Home() {
   const [countyResident, setCountyResident] = useState(true);
   const [countyEmployee, setCountyEmployee] = useState(false);
   const [firstTimeBuyer, setFirstTimeBuyer] = useState(false);
+  const [countyIncomePercent, setCountyIncomePercent] = useState<0 | 60 | 80>(0);
+  const [ownsPropertyInCounty, setOwnsPropertyInCounty] = useState(false);
 
   const [status, setStatus] = useState<Status>("idle");
   const [results, setResults] = useState<Listing[] | null>(null);
@@ -179,7 +181,7 @@ export default function Home() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  const local = countyResident || countyEmployee;
+  const local = countyResident || countyEmployee || countyIncomePercent > 0;
   const ami100 = AMI_100[Math.max(1, Math.min(8, householdSize))] ?? AMI_100[4];
   const displayPct = annualIncome > 0
     ? Math.round((annualIncome / ami100) * 100)
@@ -209,6 +211,8 @@ export default function Home() {
       householdSize,
       countyResident,
       countyEmployee,
+      countyIncomePercent,
+      ownsPropertyInCounty,
       ...(mode === "buy" && { firstTimeBuyer }),
     };
 
@@ -307,9 +311,9 @@ export default function Home() {
             </Field>
 
             <div className="field-row">
-              <Field label="Live in Gunnison County?">
+              <Field label="Lived in Gunnison County 1+ years?">
                 <Segmented
-                  name="Live in Gunnison County?"
+                  name="Lived in Gunnison County 1+ years?"
                   value={countyResident}
                   onChange={setCountyResident}
                   options={YN as unknown as { value: boolean; label: string }[]}
@@ -324,6 +328,28 @@ export default function Home() {
                 />
               </Field>
             </div>
+
+            <Field label="Income earned in Gunnison County?" hint="percentage of your total income">
+              <Segmented
+                name="Income earned in Gunnison County?"
+                value={countyIncomePercent}
+                onChange={(v) => setCountyIncomePercent(v as 0 | 60 | 80)}
+                options={[
+                  { value: 0 as const, label: "Less than 60%" },
+                  { value: 60 as const, label: "60% or more" },
+                  { value: 80 as const, label: "80% or more" },
+                ]}
+              />
+            </Field>
+
+            <Field label="Own property in Gunnison County?">
+              <Segmented
+                name="Own property in Gunnison County?"
+                value={ownsPropertyInCounty}
+                onChange={setOwnsPropertyInCounty}
+                options={YN as unknown as { value: boolean; label: string }[]}
+              />
+            </Field>
 
             {mode === "buy" && (
               <Field label="First-time buyer?" hint="no home in the last 3 years">

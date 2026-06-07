@@ -47,6 +47,18 @@ function validateProfile(
   ) {
     return { error: "firstTimeBuyer must be a boolean if provided" };
   }
+  if (
+    b.countyIncomePercent !== undefined &&
+    (typeof b.countyIncomePercent !== "number" || ![0, 60, 80].includes(b.countyIncomePercent as number))
+  ) {
+    return { error: "countyIncomePercent must be 0, 60, or 80 if provided" };
+  }
+  if (
+    b.ownsPropertyInCounty !== undefined &&
+    typeof b.ownsPropertyInCounty !== "boolean"
+  ) {
+    return { error: "ownsPropertyInCounty must be a boolean if provided" };
+  }
 
   return {
     profile: {
@@ -56,6 +68,8 @@ function validateProfile(
       countyResident: b.countyResident,
       countyEmployee: b.countyEmployee,
       firstTimeBuyer: b.firstTimeBuyer as boolean | undefined,
+      countyIncomePercent: b.countyIncomePercent as number | undefined,
+      ownsPropertyInCounty: b.ownsPropertyInCounty as boolean | undefined,
     },
   };
 }

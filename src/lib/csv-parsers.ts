@@ -116,6 +116,8 @@ export function parseListingsCsv(csv: string): Listing[] {
         county_residency_required: toBool(get(row, "county_residency_required")),
         county_employment_required: toBool(get(row, "county_employment_required")),
         first_time_buyer_required: toBool(get(row, "first_time_buyer_required")),
+        county_income_min_percent: toOptionalNumber(get(row, "county_income_min_percent")),
+        no_county_property_required: toBool(get(row, "no_county_property_required")),
         bedrooms: toNumber(get(row, "bedrooms")),
         monthly_rent: toOptionalNumber(get(row, "monthly_rent")),
         purchase_price: toOptionalNumber(

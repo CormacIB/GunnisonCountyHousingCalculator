@@ -3,8 +3,9 @@ export type UserProfile = {
   annualIncome: number;
   householdSize: number;
   countyResident: boolean;
-  countyEmployee: boolean;
   firstTimeBuyer?: boolean;
+  countyIncomePercent?: number;
+  ownsPropertyInCounty?: boolean;
 };
 
 export type Listing = {
@@ -16,8 +17,9 @@ export type Listing = {
   household_size_min?: number;
   household_size_max?: number;
   county_residency_required: boolean;
-  county_employment_required: boolean;
   first_time_buyer_required: boolean;
+  county_income_min_percent?: number;
+  no_county_property_required: boolean;
   bedrooms: number;
   monthly_rent?: number;
   purchase_price?: number;
@@ -37,6 +39,8 @@ const CRITERIA: Criterion[] = [
   { passes: (p, l) => !l.county_residency_required || p.countyResident },
   { passes: (p, l) => !l.county_employment_required || p.countyEmployee },
   { passes: (p, l) => !l.first_time_buyer_required || p.firstTimeBuyer === true },
+  { passes: (p, l) => !l.county_income_min_percent || (p.countyIncomePercent ?? 0) >= l.county_income_min_percent },
+  { passes: (p, l) => !l.no_county_property_required || p.ownsPropertyInCounty === false },
 ];
 
 export function matchListings(

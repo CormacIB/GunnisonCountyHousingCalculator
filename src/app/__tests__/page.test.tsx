@@ -44,7 +44,7 @@ describe("Calculator form", () => {
     expect(screen.getByRole("radio", { name: /buy/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/annual.*income/i)).toBeInTheDocument();
     expect(screen.getByRole("group", { name: /household size/i })).toBeInTheDocument();
-    expect(screen.getByRole("radiogroup", { name: /live in gunnison county/i })).toBeInTheDocument();
+    expect(screen.getByRole("radiogroup", { name: /lived in gunnison county/i })).toBeInTheDocument();
     expect(screen.getByRole("radiogroup", { name: /work in gunnison county/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /find homes/i })).toBeInTheDocument();
   });
