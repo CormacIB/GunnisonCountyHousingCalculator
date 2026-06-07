@@ -45,7 +45,6 @@ describe("Calculator form", () => {
     expect(screen.getByLabelText(/annual.*income/i)).toBeInTheDocument();
     expect(screen.getByRole("group", { name: /household size/i })).toBeInTheDocument();
     expect(screen.getByRole("radiogroup", { name: /lived in gunnison county/i })).toBeInTheDocument();
-    expect(screen.getByRole("radiogroup", { name: /work in gunnison county/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /find homes/i })).toBeInTheDocument();
   });
 
@@ -133,7 +132,6 @@ describe("Calculator form", () => {
       annualIncome: 60000,
       householdSize: 3,
       countyResident: true,
-      countyEmployee: false,
     });
   });
 });

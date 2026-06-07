@@ -37,7 +37,6 @@ const CRITERIA: Criterion[] = [
   { passes: (_p, l, ami) => ami <= l.ami_max_percent },
   { passes: (_p, l, ami) => l.ami_min_percent === undefined || ami >= l.ami_min_percent },
   { passes: (p, l) => !l.county_residency_required || p.countyResident },
-  { passes: (p, l) => !l.county_employment_required || p.countyEmployee },
   { passes: (p, l) => !l.first_time_buyer_required || p.firstTimeBuyer === true },
   { passes: (p, l) => !l.county_income_min_percent || (p.countyIncomePercent ?? 0) >= l.county_income_min_percent },
   { passes: (p, l) => !l.no_county_property_required || p.ownsPropertyInCounty === false },

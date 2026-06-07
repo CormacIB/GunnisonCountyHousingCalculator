@@ -170,7 +170,6 @@ export default function Home() {
   const [annualIncome, setAnnualIncome] = useState(0);
   const [householdSize, setHouseholdSize] = useState(3);
   const [countyResident, setCountyResident] = useState(true);
-  const [countyEmployee, setCountyEmployee] = useState(false);
   const [firstTimeBuyer, setFirstTimeBuyer] = useState(false);
   const [countyIncomePercent, setCountyIncomePercent] = useState<0 | 60 | 80>(0);
   const [ownsPropertyInCounty, setOwnsPropertyInCounty] = useState(false);
@@ -181,7 +180,7 @@ export default function Home() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  const local = countyResident || countyEmployee || countyIncomePercent > 0;
+  const local = countyResident || countyIncomePercent > 0;
   const ami100 = AMI_100[Math.max(1, Math.min(8, householdSize))] ?? AMI_100[4];
   const displayPct = annualIncome > 0
     ? Math.round((annualIncome / ami100) * 100)
@@ -210,7 +209,6 @@ export default function Home() {
       annualIncome,
       householdSize,
       countyResident,
-      countyEmployee,
       countyIncomePercent,
       ownsPropertyInCounty,
       ...(mode === "buy" && { firstTimeBuyer }),
@@ -310,24 +308,14 @@ export default function Home() {
               <Stepper value={householdSize} onChange={setHouseholdSize} />
             </Field>
 
-            <div className="field-row">
-              <Field label="Lived in Gunnison County 1+ years?">
-                <Segmented
-                  name="Lived in Gunnison County 1+ years?"
-                  value={countyResident}
-                  onChange={setCountyResident}
-                  options={YN as unknown as { value: boolean; label: string }[]}
-                />
-              </Field>
-              <Field label="Work in Gunnison County?">
-                <Segmented
-                  name="Work in Gunnison County?"
-                  value={countyEmployee}
-                  onChange={setCountyEmployee}
-                  options={YN as unknown as { value: boolean; label: string }[]}
-                />
-              </Field>
-            </div>
+            <Field label="Lived in Gunnison County 1+ years?">
+              <Segmented
+                name="Lived in Gunnison County 1+ years?"
+                value={countyResident}
+                onChange={setCountyResident}
+                options={YN as unknown as { value: boolean; label: string }[]}
+              />
+            </Field>
 
             <Field label="Income earned in Gunnison County?" hint="percentage of your total income">
               <Segmented

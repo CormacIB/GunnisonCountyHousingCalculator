@@ -9,7 +9,6 @@ const BASE_LISTING: Listing = {
   type: "rental",
   ami_max_percent: 80,
   county_residency_required: false,
-  county_employment_required: false,
   first_time_buyer_required: false,
   no_county_property_required: false,
   bedrooms: 2,
@@ -24,7 +23,6 @@ const BASE_PROFILE: UserProfile = {
   annualIncome: 60_000,
   householdSize: 3,
   countyResident: true,
-  countyEmployee: false,
   firstTimeBuyer: false,
   countyIncomePercent: 0,
   ownsPropertyInCounty: false,
@@ -60,12 +58,6 @@ describe("matchListings", () => {
     const residencyListing: Listing = { ...BASE_LISTING, county_residency_required: true };
     const nonResident: UserProfile = { ...BASE_PROFILE, countyResident: false };
     expect(matchListings(nonResident, [residencyListing], BASE_AMI_PERCENT)).toHaveLength(0);
-  });
-
-  it("excludes a listing that requires county employment when the user is not employed locally", () => {
-    const employmentListing: Listing = { ...BASE_LISTING, county_employment_required: true };
-    const nonEmployee: UserProfile = { ...BASE_PROFILE, countyEmployee: false };
-    expect(matchListings(nonEmployee, [employmentListing], BASE_AMI_PERCENT)).toHaveLength(0);
   });
 
   it("returns an empty array when no listings match the profile", () => {

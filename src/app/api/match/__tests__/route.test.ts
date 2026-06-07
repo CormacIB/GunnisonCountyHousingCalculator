@@ -19,7 +19,6 @@ const BASE_LISTING: Listing = {
   type: "rental",
   ami_max_percent: 80,
   county_residency_required: false,
-  county_employment_required: false,
   first_time_buyer_required: false,
   bedrooms: 2,
   monthly_rent: 1200,
@@ -32,7 +31,6 @@ const BASE_PROFILE = {
   annualIncome: 60_000,
   householdSize: 3,
   countyResident: true,
-  countyEmployee: false,
   firstTimeBuyer: false,
 };
 

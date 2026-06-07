@@ -38,9 +38,6 @@ function validateProfile(
   if (typeof b.countyResident !== "boolean") {
     return { error: "countyResident must be a boolean" };
   }
-  if (typeof b.countyEmployee !== "boolean") {
-    return { error: "countyEmployee must be a boolean" };
-  }
   if (
     b.firstTimeBuyer !== undefined &&
     typeof b.firstTimeBuyer !== "boolean"
@@ -66,7 +63,6 @@ function validateProfile(
       annualIncome: b.annualIncome,
       householdSize: b.householdSize,
       countyResident: b.countyResident,
-      countyEmployee: b.countyEmployee,
       firstTimeBuyer: b.firstTimeBuyer as boolean | undefined,
       countyIncomePercent: b.countyIncomePercent as number | undefined,
       ownsPropertyInCounty: b.ownsPropertyInCounty as boolean | undefined,
