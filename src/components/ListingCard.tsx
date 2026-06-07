@@ -41,7 +41,6 @@ export function ListingCard({
   if (isRental) tags.push("Rental");
   else tags.push("For sale");
   if (listing.county_residency_required) tags.push("Residency required");
-  if (listing.county_employment_required) tags.push("County employment required");
   if (listing.first_time_buyer_required) tags.push("First-time buyers");
 
   return (
