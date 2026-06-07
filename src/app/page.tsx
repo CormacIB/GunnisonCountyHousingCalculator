@@ -398,7 +398,7 @@ export default function Home() {
               {local && (
                 <div className="summary-note is-good">
                   <span className="note-dot" aria-hidden="true" />
-                  You count as a local household — that opens up homes reserved for people who live or work in the county.
+                  If you are a local household, that will open up additional options for deed restricted housing
                 </div>
               )}
             </div>
